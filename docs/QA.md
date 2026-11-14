@@ -2,9 +2,9 @@
 
 Status: **PASSED**
 
-Run: 2026-11-14T11:00:11.923Z
+Run: 2026-11-14T15:12:35.006Z
 
-- Local target: http://127.0.0.1:5173
+- Local target: http://127.0.0.1:4173
 - Browser: Microsoft Edge (Chromium), headless through Playwright Core
 - Public routes: 24; route/viewport checks completed: 72
 - Viewports: desktop 1440×1000, tablet 820×1180, mobile 390×844

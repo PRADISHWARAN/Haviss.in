@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { validateAttachment, validateFields } from './validation.ts';
+import { sendEnquiryNotification } from '../_shared/notification.ts';
 
 Deno.serve(async (request: Request) => {
   const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(value => value.trim()).filter(Boolean);
@@ -12,7 +13,7 @@ Deno.serve(async (request: Request) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   const ipSalt = Deno.env.get('RATE_LIMIT_SALT');
-  if (!serviceKey || !secret || !ipSalt) return reply({ error: 'Online enquiries are being connected. Please contact sathish@haviss.com.' },503);
+  if (!serviceKey || !secret || !ipSalt) return reply({ error: 'Online enquiries are being connected. Please contact our team by phone.' },503);
   if (!request.headers.get('content-type')?.startsWith('multipart/form-data')) return reply({ error: 'Unsupported form format.' },415);
   if (Number(request.headers.get('content-length') || 0) > 6 * 1024 * 1024) return reply({ error: 'The attachment is too large.' },413);
   const client = createClient(Deno.env.get('SUPABASE_URL')!,serviceKey,{auth:{persistSession:false}});
@@ -57,13 +58,12 @@ Deno.serve(async (request: Request) => {
     if (insertError) throw new Error('Your enquiry could not be saved. Please try again.');
     inserted = true;
     let notification = 'pending';
-    const emailKey = Deno.env.get('RESEND_API_KEY'); const from = Deno.env.get('ENQUIRY_FROM_EMAIL');
-    if (emailKey && from) {
-      try {
-        const response = await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${emailKey}`,'Content-Type':'application/json','Idempotency-Key':`enquiry-${fields.id}`},body:JSON.stringify({from,to:[Deno.env.get('ENQUIRY_TO_EMAIL') || 'sathish@haviss.com'],reply_to:fields.email,subject:`Haviss enquiry: ${fields.service}`,text:`New enquiry ${fields.id}\n\nName: ${fields.full_name}\nCompany: ${fields.company_name}\nEmail: ${fields.email}\nPhone: ${fields.phone}\nLocation: ${fields.city}\nService: ${fields.service}\nMachine: ${fields.manufacturer} ${fields.model}\nProduct: ${fields.product || 'Not specified'}\n\n${fields.requirement}\n\nAttachment: ${attachmentPath ? 'Available in the secure staff dashboard' : 'None'}\n\nOpen the staff dashboard to review and update this enquiry.`})});
-        notification = response.ok ? 'sent' : 'failed';
-      } catch { notification = 'failed'; }
-      await client.from('enquiries').update({notification_status:notification}).eq('id',fields.id);
+    const emailKey = Deno.env.get('RESEND_API_KEY')?.trim(); const from = Deno.env.get('ENQUIRY_FROM_EMAIL')?.trim(); const to = Deno.env.get('ENQUIRY_TO_EMAIL')?.trim();
+    // The recipient is deliberately unset until the business explicitly supplies it.
+    if (emailKey && from && to) {
+      const sent = await sendEnquiryNotification({...fields,attachment_path:attachmentPath},{apiKey:emailKey,from,to});
+      notification = sent ? 'sent' : 'failed';
+      await client.from('enquiries').update({notification_status:notification}).eq('id',fields.id).neq('notification_status','sent');
     }
     return reply({id:fields.id,notification},201);
   } catch (error) {

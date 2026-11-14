@@ -21,7 +21,7 @@ export async function loadProducts(): Promise<Product[]> {
   return data || [];
 }
 export async function submitEnquiry(form: FormData) {
-  if (!supabase) throw new Error('Online enquiries are not connected yet. Please email sathish@haviss.com or call +91 99624 74959.');
+  if (!supabase) throw new Error('Online enquiries are not connected yet. Please call the Haviss team.');
   const response = await fetch(`${url}/functions/v1/submit-enquiry`, { method: 'POST', headers: { apikey: key! }, body: form });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || 'Your enquiry could not be sent. Please try again or contact our team.');

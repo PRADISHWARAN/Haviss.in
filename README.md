@@ -24,7 +24,7 @@ The public frontend uses only a Supabase URL, anonymous/publishable key and Turn
 ## Configuration before public launch
 
 1. Follow [backend setup](docs/BACKEND.md): provision Supabase, apply the SQL migration, create staff accounts and roles, deploy the submission function, configure Turnstile and verify the Resend sending domain. Complete the live smoke tests documented there.
-2. Configure `.env.local` from `.env.example` and rebuild. Define the exact allowed production origin in the function. The default SEO origin is `https://www.haviss.com`; change `VITE_SITE_URL` for another canonical production domain. Use a private preview until ready.
+2. Configure `.env.local` from `.env.example` and rebuild. Define the exact allowed production origin in the function. SEO defaults to the current shareable Sites URL; set `VITE_SITE_URL` to the new HTTPS domain only after it is connected and verified.
 3. Review [asset rights and approval notes](docs/ASSETS.md), [research notes](docs/RESEARCH.md) and [content sources](docs/CONTENT-SOURCES.md). Photographs are licensed illustrative metrology images, not a claim about Haviss facilities, employees or current inventory. Replace with approved company photographs when available.
 4. Have the company approve service scope, current contact information, privacy text and its data retention policy. Confirm WhatsApp consent before setting `VITE_ENABLE_WHATSAPP=true`.
 5. Map the business domain and HTTPS through the chosen host. Keep SPA fallback for `/admin` and future `/products/equipment/:slug` routes, and return HTTP 404 for genuinely unknown paths where the host supports it. Use `dist/404.html` for the error page.
@@ -32,7 +32,7 @@ The public frontend uses only a Supabase URL, anonymous/publishable key and Turn
 
 ## Current integration behavior
 
-Without configuration, the website is fully browsable and forms explicitly say online submission is not yet connected. Telephone and email links work. No submission is represented as received unless the backend persists it. Email is recorded as pending/failed if notification is not delivered; staff can see that state. No external message is sent by the build or automated QA.
+Without backend configuration, visitors can use the displayed phone contact. Once an enquiry email address is configured, visitors can also prepare an email draft addressed to Haviss. They must open their own email app, add any attachments there and press Send; the site does not send or store that draft. If an email app is unavailable, they can copy the prepared details. Once the backend is configured, no online submission is represented as received unless it is persisted; email delivery state is recorded separately. No external message is sent by the build or automated QA.
 
 ## Stack and deployment
 

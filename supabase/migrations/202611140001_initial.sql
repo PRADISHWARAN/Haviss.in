@@ -1,4 +1,6 @@
 -- Run once through the Supabase CLI. No public enquiry writes or staff self-enrolment.
+-- Explicit privileges make this migration work when automatic Data API exposure is disabled.
+grant usage on schema public to anon, authenticated, service_role;
 create table public.staff_roles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   role text not null check (role in ('admin', 'editor', 'viewer')),
@@ -7,10 +9,12 @@ create table public.staff_roles (
 create or replace function public.current_staff_role() returns text language sql stable security definer set search_path = '' as $$
   select role from public.staff_roles where user_id = (select auth.uid());
 $$;
-revoke all on function public.current_staff_role() from public;
+revoke all on function public.current_staff_role() from public, anon, authenticated, service_role;
 grant execute on function public.current_staff_role() to authenticated;
 alter table public.staff_roles enable row level security;
 create policy staff_read_own_role on public.staff_roles for select to authenticated using (user_id = (select auth.uid()));
+revoke all on public.staff_roles from public, anon, authenticated, service_role;
+grant select on public.staff_roles to authenticated, service_role;
 
 create table public.enquiries (
   id uuid primary key,
@@ -35,9 +39,12 @@ alter table public.enquiries enable row level security;
 create policy enquiries_staff_read on public.enquiries for select to authenticated using ((select public.current_staff_role()) in ('admin','editor','viewer'));
 create policy enquiries_staff_update on public.enquiries for update to authenticated using ((select public.current_staff_role()) in ('admin','editor')) with check ((select public.current_staff_role()) in ('admin','editor'));
 -- Column privilege limits staff changes to workflow status; submissions are immutable.
-revoke all on public.enquiries from anon, authenticated;
+revoke all on public.enquiries from public, anon, authenticated, service_role;
 grant select on public.enquiries to authenticated;
 grant update (status) on public.enquiries to authenticated;
+-- Edge Functions use the server-only service role for persistence and delivery tracking.
+grant select, insert on public.enquiries to service_role;
+grant update (notification_status) on public.enquiries to service_role;
 
 create table public.products (
   id uuid primary key default gen_random_uuid(),
@@ -61,6 +68,7 @@ create policy products_staff_read on public.products for select to authenticated
 create policy products_staff_insert on public.products for insert to authenticated with check ((select public.current_staff_role()) in ('admin','editor'));
 create policy products_staff_update on public.products for update to authenticated using ((select public.current_staff_role()) in ('admin','editor')) with check ((select public.current_staff_role()) in ('admin','editor'));
 create policy products_admin_delete on public.products for delete to authenticated using ((select public.current_staff_role()) = 'admin');
+revoke all on public.products from public, anon, authenticated, service_role;
 grant select on public.products to anon,authenticated;
 grant insert,update,delete on public.products to authenticated;
 
@@ -75,9 +83,9 @@ create policy content_public_read on public.site_content for select to anon,auth
 create policy content_staff_read on public.site_content for select to authenticated using ((select public.current_staff_role()) in ('admin','editor','viewer'));
 create policy content_staff_insert on public.site_content for insert to authenticated with check ((select public.current_staff_role()) in ('admin','editor'));
 create policy content_staff_update on public.site_content for update to authenticated using ((select public.current_staff_role()) in ('admin','editor')) with check ((select public.current_staff_role()) in ('admin','editor'));
+revoke all on public.site_content from public, anon, authenticated, service_role;
 grant select on public.site_content to anon,authenticated;
 grant insert,update on public.site_content to authenticated;
-grant select on public.staff_roles to authenticated;
 
 create table public.enquiry_rate_limits (
   key text primary key,
@@ -85,7 +93,7 @@ create table public.enquiry_rate_limits (
   attempts integer not null default 1
 );
 alter table public.enquiry_rate_limits enable row level security;
-revoke all on public.enquiry_rate_limits from anon,authenticated;
+revoke all on public.enquiry_rate_limits from public,anon,authenticated,service_role;
 create or replace function public.take_enquiry_rate_limit(p_key text) returns boolean language plpgsql security definer set search_path = '' as $$
 declare n integer;
 begin

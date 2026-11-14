@@ -32,7 +32,7 @@
   .field input, .field select, .field textarea, input.form-input, select.form-input { font-size: 16px; }
   .mobile-contact > a { min-height: 56px; font-size: 13px; }
   .footer { padding-bottom: calc(75px + env(safe-area-inset-bottom)); }
-  body:has(input:focus, select:focus, textarea:focus) .mobile-contact { display: none; }
+  body:has(.enquiry-form:focus-within) .mobile-contact { display: none; }
 }
 @media (max-width: 480px) {
   .home-services { grid-template-columns: 1fr; }

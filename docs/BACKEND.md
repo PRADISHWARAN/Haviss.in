@@ -1,6 +1,6 @@
 # Enquiry and staff backend
 
-The code is complete for a Supabase-backed enquiry service and staff portal. It has **not** been connected to a real Supabase project or email account. The site deliberately shows a configuration notice and disables online submission until its public connection and Turnstile site key exist. Direct phone and email links remain usable. No sample leads, staff accounts or inventory are created.
+The code is complete for a Supabase-backed enquiry service and staff portal. It has **not** been connected to a real Supabase project or email account. The public enquiry address is intentionally blank until the owner supplies it, so visitors currently see the telephone contact. Once an address is configured, but before online submission is connected, visitors can prepare an email draft, open it in their own email app and send it themselves. They must attach files in their email app. The website does not send or store that draft; a copyable version is shown if no email app is available. No sample leads, staff accounts or inventory are created.
 
 ## Provision the project
 
@@ -24,6 +24,7 @@ Create an ignored `.env.local` with the following **public** values, then rebuil
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
 VITE_TURNSTILE_SITE_KEY=YOUR_PUBLIC_TURNSTILE_SITE_KEY
+VITE_CONTACT_EMAIL=YOUR_CONFIRMED_ENQUIRY_EMAIL
 ```
 
 Only these public values belong in the frontend. Supabase service keys, email credentials and Turnstile secrets must never have a `VITE_` prefix or enter a Git commit.
@@ -34,20 +35,20 @@ Set these in the Supabase project's Edge Function secrets interface (or pass the
 
 | Secret | Purpose |
 | --- | --- |
-| `ALLOWED_ORIGINS` | Comma-separated exact origins, e.g. `https://www.haviss.com,https://haviss.com`; include an actual preview origin only if it should accept submissions. |
+| `ALLOWED_ORIGINS` | Comma-separated exact origins, for example the chosen verified `havissmetrology.in` origin and the existing Sites address if it should accept submissions. |
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile server verification secret. Configure allowed hostnames in Turnstile as well. |
 | `RATE_LIMIT_SALT` | A long randomly generated server secret used to hash IP addresses for rate limiting. |
 | `RESEND_API_KEY` | Resend key for business notifications. |
 | `ENQUIRY_FROM_EMAIL` | Sender on a domain verified with Resend, e.g. `Haviss Website <website@haviss.com>`. This example is not a claimed existing mailbox. |
-| `ENQUIRY_TO_EMAIL` | Destination, defaults to the verified `sathish@haviss.com`. |
+| `ENQUIRY_TO_EMAIL` | Recipient chosen and explicitly supplied by the business. This has no default; leave it unset until the business provides an address. |
 
-Supabase supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to its Edge Functions. Deploy with `supabase functions deploy submit-enquiry`. The `verify_jwt = false` declaration is intentional: visitors have no account. The handler independently enforces origin restrictions, Turnstile verification, rate limits, validation, upload restrictions and a honeypot. Staff requests use authenticated Supabase clients and database/storage RLS.
+Supabase supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to its Edge Functions. Deploy both functions: `supabase functions deploy submit-enquiry` and `supabase functions deploy retry-notification`. The `verify_jwt = false` declaration for `submit-enquiry` is intentional: visitors have no account. The handler independently enforces origin restrictions, Turnstile verification, rate limits, validation, upload restrictions and a honeypot. The retry function requires a verified staff JWT, checks that the staff member is an admin or editor, and keeps service credentials server-side. Staff requests use authenticated Supabase clients and database/storage RLS.
 
 The form fails closed if its security configuration is incomplete. The server verifies Turnstile with Cloudflare, including the returned hostname. It caps multipart bodies at 6 MB and attachments at 5 MB, accepts PDF/JPEG/PNG only, checks extensions, declared MIME types and file signatures, and stores attachments in a private bucket under random names. Staff receives short-lived download links. No attachments appear in notification emails. Signature checks are not malware scanning; if your document-handling policy requires scanning, add a scanner and quarantine process before allowing staff downloads.
 
 ## Persistence and email behavior
 
-The Edge Function persists an enquiry before attempting its email notification. A repeat with the same random request ID will not create a second row. Delivery state is visible in the dashboard as `pending`, `sent` or `failed`. A pending state means email configuration is absent; a failed state means the provider did not accept the attempt. A saved enquiry is never reported as unsaved because the email provider failed. There is no automatic mail retry worker: staff should monitor non-sent notification states and configure operational alerts before launch. The dashboard is the source of truth for received enquiries.
+The Edge Function persists an enquiry before attempting its email notification. A repeat with the same random request ID will not create a second row. Delivery state is visible in the dashboard as `pending`, `sent` or `failed`. A pending state means email configuration or the explicitly chosen `ENQUIRY_TO_EMAIL` recipient is absent; no email is sent in that case. A failed state means the provider did not accept the attempt. A saved enquiry is never reported as unsaved because the email provider failed. The dashboard displays a count of non-sent notifications; an editor or administrator may retry one manually after email is configured. There is no automatic retry worker or external failure alert, so staff must monitor the dashboard. Check the provider's delivery log before retrying an old or uncertain delivery: provider idempotency is time-limited. The dashboard is the source of truth for received enquiries.
 
 Form submissions are limited to five per IP hash per hour through an atomic database operation. Configure an additional edge/WAF limit for broad abuse protection. The handler relies on the hosting platform's trusted client-IP forwarding headers; do not place an untrusted proxy in front of the function that permits visitors to control those headers.
 

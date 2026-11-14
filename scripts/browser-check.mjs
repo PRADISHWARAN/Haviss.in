@@ -10,7 +10,7 @@ const executablePath = process.env.QA_BROWSER_PATH || 'C:/Program Files (x86)/Mi
 const output = resolve('artifacts/browser-qa');
 await mkdir(output, { recursive: true });
 await mkdir('node_modules/.cache', { recursive: true });
-await build({ entryPoints: ['src/lib/seo.ts'], outfile: 'node_modules/.cache/haviss-qa-routes.mjs', bundle: true, platform: 'node', format: 'esm', packages: 'external' });
+await build({ entryPoints: ['src/lib/seo.ts'], outfile: 'node_modules/.cache/haviss-qa-routes.mjs', bundle: true, platform: 'node', format: 'esm', packages: 'external', define: {'import.meta.env': '{}'} });
 const { publicRoutes } = await import(pathToFileURL(resolve('node_modules/.cache/haviss-qa-routes.mjs')).href);
 const browser = await chromium.launch({ executablePath, headless: true });
 const results = [];
@@ -117,13 +117,31 @@ try {
     route = '/request-quote?service=CMM%20Retrofit&product=QA%20reference';
     await page.goto(new URL(route,base).href, { waitUntil: 'domcontentloaded' });
     await settle(page);
-    assertion(await page.locator('select[name="service"]').inputValue() === 'CMM Retrofit', `${viewport.name}: quote service not preselected`);
-    assertion(await page.locator('input[name="product"]').inputValue() === 'QA reference', `${viewport.name}: quote product not included`);
-    assertion(await page.locator('.selected-product').textContent().then(text => text?.includes('QA reference')), `${viewport.name}: selected product not visible`);
-    assertion(await page.locator('button[type="submit"]').isDisabled(), `${viewport.name}: unconfigured enquiry submission should be disabled`);
-    assertion(await page.locator('.form-notice').textContent().then(text => text?.includes('Online submission is being connected')), `${viewport.name}: missing honest configuration notice`);
-    // Native validation must still catch empty fields even before backend configuration.
-    assertion(!(await page.locator('.enquiry-form').evaluate(form => form.checkValidity())), `${viewport.name}: empty required form unexpectedly valid`);
+    const enquiryForm = page.locator('form.enquiry-form');
+    if (await enquiryForm.count()) {
+      assertion(await page.locator('select[name="service"]').inputValue() === 'CMM Retrofit', `${viewport.name}: quote service not preselected`);
+      assertion(await page.locator('input[name="product"]').inputValue() === 'QA reference', `${viewport.name}: quote product not included`);
+      assertion(await page.locator('.selected-product').textContent().then(text => text?.includes('QA reference')), `${viewport.name}: selected product not visible`);
+      assertion(await page.locator('button[type="submit"]').isEnabled(), `${viewport.name}: email draft preparation should be available`);
+      assertion(await page.locator('.form-notice').textContent().then(text => text?.includes('press Send')), `${viewport.name}: missing email draft guidance`);
+      assertion(!(await enquiryForm.evaluate(form => form.checkValidity())), `${viewport.name}: empty required form unexpectedly valid`);
+      await page.locator('input[name="full_name"]').fill('Test Buyer');
+      await page.locator('input[name="company_name"]').fill('Test Company');
+      await page.locator('input[name="email"]').fill('buyer@example.com');
+      await page.locator('input[name="phone"]').fill('+91 98765 43210');
+      await page.locator('input[name="city"]').fill('Chennai');
+      await page.locator('textarea[name="requirement"]').fill('Please assess our coordinate measuring machine.');
+      await page.locator('input[name="consent"]').check();
+      await page.locator('button[type="submit"]').click();
+      const mail = await page.locator('.email-draft a').getAttribute('href');
+      assertion(mail?.startsWith('mailto:') && decodeURIComponent(mail).includes('QA reference'), `${viewport.name}: draft recipient or selected product is incorrect`);
+      assertion(await page.locator('.email-draft').textContent().then(text => text?.includes('not been sent or saved')), `${viewport.name}: missing unsent draft explanation`);
+      await page.locator('input[name="city"]').fill('Pune');
+      assertion(await page.locator('.email-draft').count() === 0, `${viewport.name}: changed details left a stale draft`);
+    } else {
+      assertion(await page.locator('.enquiry-form a[href^="tel:"]').count() >= 1, `${viewport.name}: missing call fallback while recipient is unset`);
+      assertion(await page.locator('a[href="mailto:"]').count() === 0, `${viewport.name}: an empty email address is linked`);
+    }
 
     route = '/admin';
     await page.goto(new URL(route,base).href, { waitUntil: 'domcontentloaded' });

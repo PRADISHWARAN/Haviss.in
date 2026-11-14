@@ -1,4 +1,5 @@
-import { company, services, resources } from '../data/content';
+import { company, services, resources, type Product } from '../data/content';
+import {DEFAULT_SITE_ORIGIN, resolveSiteOrigin} from './site-origin';
 export const publicRoutes = ['/', '/about', '/services', ...services.map(s=>`/services/${s.slug}`), '/products', '/products/used-cmm', '/products/modular-fixtures', '/products/accessories', '/products/consultation', '/training', '/industries', '/resources', ...resources.map(r=>`/resources/${r.slug}`), '/contact', '/request-quote', '/privacy', '/image-credits'];
 const metadata:Record<string,[string,string]>={
  '/':['CMM & 3D Metrology Solutions, Chennai','Complete CMM lifecycle support in Chennai. Explore Haviss CMM retrofits, calibration, repair, inspection, used equipment and operator training.'],
@@ -12,22 +13,29 @@ const metadata:Record<string,[string,string]>={
  '/training':['CMM Training Chennai | Operator Learning','CMM operator training from Haviss. Learn coordinate systems, probe calibration, part alignment, GD&T, dimensional inspection and reporting.'],
  '/industries':['Dimensional Metrology Applications | Industries','Explore coordinate metrology applications in automotive, aerospace, precision manufacturing, tooling, medical components and engineering education.'],
  '/resources':['CMM Knowledge Centre | Practical Metrology Guides','Read practical guidance on preparing for CMM service, planning inspection and assessing retrofit or equipment requirements.'],
- '/contact':['Contact Haviss | CMM Services Chennai','Contact Haviss 3D Metrology Solutions in Chennai. Call +91 99624 74959 or email sathish@haviss.com to discuss your measurement requirements.'],
+ '/contact':['Contact Haviss | CMM Services Chennai','Contact Haviss 3D Metrology Solutions in Chennai. Call +91 99624 74959 to discuss your measurement requirements.'],
  '/request-quote':['Request a CMM Service Quote | Haviss Chennai','Tell Haviss about your CMM service, equipment, inspection or training requirements. Include machine details and supporting drawings for a useful discussion.'],
  '/privacy':['Privacy Policy','How Haviss handles enquiry details, drawings and staff accounts. Contact our team about your personal information.'],
  '/image-credits':['Photography & Image Credits','Sources, authors and licences for the illustrative CMM photographs used on the Haviss website.'],
  '/admin':['Staff Administration','Restricted workspace for authorized Haviss staff.']
 };
-export function getSeo(pathname:string, origin='https://www.haviss.com') {
+export function getSeo(pathname:string, requestedOrigin=DEFAULT_SITE_ORIGIN, product?: Product, queryItem?: string) {
+ const origin=resolveSiteOrigin(requestedOrigin);
  const path=pathname.replace(/\/$/,'')||'/';
  const service=services.find(s=>path===`/services/${s.slug}`);
  const resource=resources.find(r=>path===`/resources/${r.slug}`);
- const [title,description]=service?[`${service.title} Chennai | CMM Services`,service.summary]:resource?[resource.title,resource.summary]:metadata[path]||['Page Not Found','The page you are looking for could not be found. Explore Haviss CMM services and equipment.'];
+ const isProductQuery=path==='/products' && queryItem!==undefined;
+ const verifiedProduct=product?.published && (path===`/products/equipment/${product.slug}`||(isProductQuery && product.slug===queryItem)) ? product : undefined;
+ const [title,description]=verifiedProduct?[`${verifiedProduct.name} | CMM Equipment`,verifiedProduct.description.trim().slice(0,160)||`Enquire about ${verifiedProduct.name} from Haviss.`]:isProductQuery?['Equipment Enquiry','Contact Haviss to confirm current equipment details and availability.']:service?[`${service.title} Chennai | CMM Services`,service.summary]:resource?[resource.title,resource.summary]:metadata[path]||['Page Not Found','The page you are looking for could not be found. Explore Haviss CMM services and equipment.'];
  const canonical=origin.replace(/\/$/,'')+(path==='/'?'/':path);
- const noindex=path==='/admin'||!publicRoutes.includes(path);
- const organization={ '@type':['Organization','LocalBusiness'], '@id':`${origin}/#organization`,name:company.name,url:origin,telephone:company.phone,email:company.email,foundingDate:'2014',description:'Complete solutions for coordinate measuring machines.',address:{'@type':'PostalAddress',streetAddress:'#1A, 1st Floor, IJ Puram, Manali New Town, Ponneri High Road',addressLocality:'Chennai',addressRegion:'Tamil Nadu',postalCode:'600103',addressCountry:'IN'}};
+ // Product query links are reloadable on static hosting, but require server support
+ // before they can safely claim unique crawlable URLs and indexed metadata.
+ const noindex=path==='/admin'||isProductQuery||!publicRoutes.includes(path);
+ const organization={ '@type':['Organization','LocalBusiness'], '@id':`${origin}/#organization`,name:company.name,url:origin,telephone:company.phone,...(company.email?{email:company.email}:{}),foundingDate:'2014',description:'Complete solutions for coordinate measuring machines.',address:{'@type':'PostalAddress',streetAddress:'#1A, 1st Floor, IJ Puram, Manali New Town, Ponneri High Road',addressLocality:'Chennai',addressRegion:'Tamil Nadu',postalCode:'600103',addressCountry:'IN'}};
  const graph:object[]=[organization];
- if(path!=='/')graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Home',item:origin},{'@type':'ListItem',position:2,name:service?.title||resource?.title||title.split('|')[0].trim(),item:canonical}]});
+ if(path!=='/')graph.push({'@type':'BreadcrumbList',itemListElement:verifiedProduct&&!isProductQuery?[{'@type':'ListItem',position:1,name:'Home',item:origin},{'@type':'ListItem',position:2,name:'Products',item:`${origin}/products`},{'@type':'ListItem',position:3,name:verifiedProduct.name,item:canonical}]:[{'@type':'ListItem',position:1,name:'Home',item:origin},{'@type':'ListItem',position:2,name:isProductQuery?'Products':service?.title||resource?.title||title.split('|')[0].trim(),item:canonical}]});
  if(service)graph.push({'@type':'Service',name:service.title,serviceType:service.title,description:service.summary,url:canonical,provider:{'@id':`${origin}/#organization`},areaServed:{'@type':'City',name:'Chennai'}});
- return {title:`${title} | HAVISS`,description,canonical,noindex,jsonLd:{'@context':'https://schema.org','@graph':graph}};
+ if(verifiedProduct&&!isProductQuery)graph.push({'@type':'Product',name:verifiedProduct.name,description,url:canonical,...(verifiedProduct.manufacturer?{manufacturer:{'@type':'Organization',name:verifiedProduct.manufacturer}}:{}),...(verifiedProduct.image_url?{image:verifiedProduct.image_url}:{})});
+ const image=verifiedProduct?.image_url||`${origin}/images/cmm-hero.webp`;
+ return {title:`${title} | HAVISS`,description,canonical,image,noindex,jsonLd:{'@context':'https://schema.org','@graph':graph}};
 }

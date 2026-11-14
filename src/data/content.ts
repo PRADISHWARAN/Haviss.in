@@ -5,11 +5,12 @@ export const company = {
   leader: 'H. Sathish Kumar',
   phone: '+91 99624 74959',
   phoneHref: 'tel:+919962474959',
-  email: 'sathish@haviss.com',
+  // Leave unset until the business confirms its new enquiry address.
+  email: import.meta.env.VITE_CONTACT_EMAIL || '',
   location: 'Chennai, Tamil Nadu, India',
   registeredOffice: '#1A, 1st Floor, IJ Puram, Manali New Town, Ponneri High Road, Chennai, Tamil Nadu 600103, India.',
   works: 'No. 144, Kamarajar Street, TMP Nagar, Padi, Chennai, Tamil Nadu 600050, India.',
-  domain: 'https://www.haviss.com',
+  domain: '',
   mapsOffice: 'https://www.google.com/maps/search/?api=1&query=IJ+Puram+Manali+New+Town+Chennai+600103',
   mapsWorks: 'https://www.google.com/maps/search/?api=1&query=No+144+Kamarajar+Street+TMP+Nagar+Padi+Chennai+600050',
 };
