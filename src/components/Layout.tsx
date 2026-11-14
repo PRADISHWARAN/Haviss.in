@@ -1,10 +1,34 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight, Phone, Mail, MapPin, Menu, X, ChevronDown, Crosshair } from 'lucide-react';
 import { useSiteContent } from '../lib/content-context';
 
 export function Logo({ light = false }: {light?: boolean}) {
   return <Link to="/" className={`brand ${light ? 'brand-light' : ''}`} aria-label="Haviss home"><span className="brand-symbol" aria-hidden="true"><i/><i/><i/></span><span><strong>HAVISS<span className="brand-dot">.</span></strong><small>3D METROLOGY SOLUTIONS</small></span></Link>;
+}
+
+function MobilePagesNav() {
+ const nav = useRef<HTMLElement>(null);
+ const {pathname} = useLocation();
+ useEffect(() => {
+  const list = nav.current;
+  const active = list?.querySelector<HTMLElement>('a.active');
+  if (list && active && list.clientWidth) {
+   const left = active.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft;
+   list.scrollTo({left: Math.max(0, left - list.clientWidth / 3), behavior: 'auto'});
+  }
+ }, [pathname]);
+ const pages = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/about', label: 'About' },
+  { to: '/services', label: 'Services' },
+  { to: '/products', label: 'Products' },
+  { to: '/training', label: 'Training' },
+  { to: '/industries', label: 'Industries' },
+  { to: '/resources', label: 'Resources' },
+  { to: '/contact', label: 'Contact' },
+ ];
+ return <div className="mobile-pages-bar"><div className="mobile-pages-label">PAGES <span aria-hidden="true">↔</span></div><nav ref={nav} className="mobile-pages-nav" aria-label="Explore pages, swipe horizontally">{pages.map(page=><NavLink key={page.to} to={page.to} end={page.end}>{page.label}</NavLink>)}</nav></div>;
 }
 
 export function Header() {
@@ -18,7 +42,7 @@ export function Header() {
    document.addEventListener('keydown',onKey);
    return () => document.removeEventListener('keydown',onKey);
  },[]);
- return <><a className="skip-link" href="#main">Skip to content</a><div className="topbar"><div className="container"><span>COMPLETE SOLUTIONS FOR COORDINATE MEASURING MACHINES</span><div><a href={company.phoneHref}><Phone size={12}/>{company.phone}</a><a href={`mailto:${company.email}`}><Mail size={12}/>{company.email}</a></div></div></div><header className="header"><div className="container header-inner"><Logo/><nav id="main-navigation" className={open?'main-nav nav-open':'main-nav'} aria-label="Main navigation"><NavLink to="/" end>Home</NavLink><NavLink to="/about">About us</NavLink><div className="nav-group"><div className="nav-group-label"><NavLink to="/services">Services</NavLink><button className="nav-toggle" aria-label="Show services" aria-expanded={servicesOpen} onClick={()=>setServicesOpen(!servicesOpen)}><ChevronDown size={12}/></button></div>{servicesOpen&&<div className="nav-dropdown">{services.map(service=><Link key={service.slug} to={`/services/${service.slug}`}>{service.shortTitle}<ArrowUpRight size={14}/></Link>)}</div>}</div><NavLink to="/products">CMM & Products</NavLink><NavLink to="/training">Training</NavLink><NavLink to="/industries">Industries</NavLink><NavLink to="/resources">Resources</NavLink><NavLink to="/contact">Contact</NavLink></nav><Link to="/request-quote" className="button button-primary header-quote">Request a Quote <ArrowUpRight size={17}/></Link><button className="mobile-menu" onClick={()=>setOpen(!open)} aria-controls="main-navigation" aria-expanded={open} aria-label={open?'Close navigation':'Open navigation'}>{open?<X/>:<Menu/>}</button></div></header></>;
+ return <><a className="skip-link" href="#main">Skip to content</a><div className="topbar"><div className="container"><span>COMPLETE SOLUTIONS FOR COORDINATE MEASURING MACHINES</span><div><a href={company.phoneHref}><Phone size={12}/>{company.phone}</a><a href={`mailto:${company.email}`}><Mail size={12}/>{company.email}</a></div></div></div><header className="header"><div className="container header-inner"><Logo/><nav id="main-navigation" className={open?'main-nav nav-open':'main-nav'} aria-label="Main navigation"><NavLink to="/" end>Home</NavLink><NavLink to="/about">About us</NavLink><div className="nav-group"><div className="nav-group-label"><NavLink to="/services">Services</NavLink><button className="nav-toggle" aria-label="Show services" aria-expanded={servicesOpen} onClick={()=>setServicesOpen(!servicesOpen)}><ChevronDown size={12}/></button></div>{servicesOpen&&<div className="nav-dropdown">{services.map(service=><Link key={service.slug} to={`/services/${service.slug}`}>{service.shortTitle}<ArrowUpRight size={14}/></Link>)}</div>}</div><NavLink to="/products">CMM & Products</NavLink><NavLink to="/training">Training</NavLink><NavLink to="/industries">Industries</NavLink><NavLink to="/resources">Resources</NavLink><NavLink to="/contact">Contact</NavLink></nav><Link to="/request-quote" className="button button-primary header-quote">Request a Quote <ArrowUpRight size={17}/></Link><button className="mobile-menu" onClick={()=>setOpen(!open)} aria-controls="main-navigation" aria-expanded={open} aria-label={open?'Close navigation':'Open navigation'}><span>{open?'Close':'All pages'}</span>{open?<X/>:<Menu/>}</button></div><MobilePagesNav/></header></>;
 }
 
 export function FinalCTA() {const {company}=useSiteContent();return <section className="final-cta"><div className="container cta-inner"><div><span className="eyebrow light"><span/>LET’S TALK PRECISION</span><h2>Let’s solve your next<br/>measurement challenge.</h2><p>From a single inspection to a complete CMM upgrade, let’s find the right solution for your requirements.</p></div><div className="cta-actions"><Link to="/request-quote" className="button button-white">Request a Quote <ArrowUpRight size={19}/></Link><a className="cta-phone" href={company.phoneHref}><Phone size={16}/>Call our expert <ArrowUpRight size={16}/></a></div></div></section>}
