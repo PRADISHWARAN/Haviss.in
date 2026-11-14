@@ -148,7 +148,7 @@ try {
     await settle(page);
     assertion(await page.locator('h1').count() === 1, `${viewport.name}: admin expected one H1`);
     assertion(await page.locator('.admin-table,.admin-detail').count() === 0, `${viewport.name}: unconfigured admin exposes enquiry dashboard`);
-    assertion(await page.getByText('Staff portal setup required').count() === 1, `${viewport.name}: missing unconfigured admin notice`);
+    assertion((await page.getByText('Staff portal setup required').count()) === 1 || (await page.locator('.admin-login input[name="email"]').count()) === 1, `${viewport.name}: missing staff setup notice or login`);
     assertion((await page.locator('meta[name="robots"]').getAttribute('content'))?.includes('noindex'), `${viewport.name}: admin must be noindex`);
     await context.close();
     console.log(`Checked ${viewport.name}: ${publicRoutes.length} public routes and enquiry/admin behavior.`);

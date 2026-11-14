@@ -2,7 +2,7 @@
 
 Status: **PASSED**
 
-Run: 2026-11-14T15:12:35.006Z
+Run: 2026-11-14T15:23:47.889Z
 
 - Local target: http://127.0.0.1:4173
 - Browser: Microsoft Edge (Chromium), headless through Playwright Core

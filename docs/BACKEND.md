@@ -4,6 +4,8 @@ The code is complete for a Supabase-backed enquiry service and staff portal. It 
 
 ## Provision the project
 
+**Current Haviss project:** The initial schema and permission smoke check were run successfully in the Supabase SQL editor. Because it was applied manually, the CLI migration history has not yet been marked. Do **not** blindly run `supabase db push` against that project: after linking and confirming its current schema, use Supabase's documented `supabase migration repair --status applied 202611140001 --remote` to record the existing migration before future changes. This command changes the migration history; it does not rerun the SQL.
+
 1. Create a Supabase project in an appropriate region and install/sign in with the Supabase CLI.
 2. From the project folder, run `supabase link --project-ref YOUR_PROJECT_REF`, review the migration, then `supabase db push`.
 3. Create staff users through Supabase Auth's administrator interface. Disable public signups for this staff-only authentication service. Never add a public signup form.
