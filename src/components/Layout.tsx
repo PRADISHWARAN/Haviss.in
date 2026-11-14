@@ -15,7 +15,7 @@ function MobilePagesNav() {
   const active = list?.querySelector<HTMLElement>('a.active');
   if (list && active && list.clientWidth) {
    const left = active.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft;
-   list.scrollTo({left: Math.max(0, left - list.clientWidth / 3), behavior: 'auto'});
+   list.scrollTo({left: Math.max(0, left), behavior: 'auto'});
   }
  }, [pathname]);
  const pages = [
