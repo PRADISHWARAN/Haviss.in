@@ -1,4 +1,4 @@
-export const allowedServices = ['CMM Retrofit','CMM Calibration','CMM Repair','CMM Software Upgrade','CMM Inspection','CMM AMC','Used CMM Purchase','CMM Training','Modular Fixtures','Other Enquiry'];
+export const allowedServices = ['CMM Retrofit','CMM Calibration','CMM Repair','CMM Software Upgrade','CMM Inspection','CMM AMC','CMM Relocation','Used CMM Purchase','Used CMM Sale','CMM Training','Modular Fixtures','CMM Accessories & Spares','Other Enquiry'];
 export function validateFields(data: FormData) {
   const read = (key: string, min: number, max: number) => {
     const value = data.get(key);

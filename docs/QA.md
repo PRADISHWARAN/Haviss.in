@@ -2,11 +2,11 @@
 
 Status: **PASSED**
 
-Run: 2026-11-14T15:23:47.889Z
+Run: 2026-11-23T18:12:43.186Z
 
-- Local target: http://127.0.0.1:4173
+- Local target: http://127.0.0.1:5173
 - Browser: Microsoft Edge (Chromium), headless through Playwright Core
-- Public routes: 24; route/viewport checks completed: 72
+- Public routes: 40; route/viewport checks completed: 120
 - Viewports: desktop 1440×1000, tablet 820×1180, mobile 390×844
 - Checks: HTTP responses, one H1 per page, horizontal overflow, loaded images, alt attributes, metadata, route links and anchor targets, service FAQ toggles, quote service/product context, native required validation, honest unconfigured submission state, private admin empty state and noindex.
 - Screenshots and machine-readable report: `artifacts/browser-qa/`

@@ -1,5 +1,11 @@
 # Image sources and publication notes
 
+## Haviss company images (`/images/haviss/`)
+
+Supplied by Haviss in November 2026: nine WhatsApp photographs of Haviss modular fixtures holding automotive panels, and images extracted from the company brochures (`Haviss 3D Metrology Scope Rev1.pdf`, `Haviss cmm-fixture.pdf`) — the inspection-centre CMM, calibration check and positioning plot, retrofit hardware, CMM Manager and Metrolog XG screenshots, training and fixture-kit images. Converted to WebP; the inspection-centre photo was cropped to remove the brochure text overlay. Confirm with the company that people visible in the fixture photos are happy to appear on the website.
+
+## Third-party illustrative images
+
 All five photographs are real, third-party illustrative metrology images. None depicts verified Haviss equipment, inventory, employees or facilities. No CMMXYZ images were used. No AI-generated industrial photography was used.
 
 | Local asset | Creator and source | License | Changes |

@@ -13,11 +13,11 @@ The preview normally opens at `http://127.0.0.1:5173`. Run `npm run build` for t
 
 ## Pages
 
-Home; About; Services and six detailed service pages; Products and four category pages; a dynamic verified-product detail template; Training; Industries; Resources and three articles; Contact; Request a Quote; Privacy; Image Credits; Staff Administration; and a not-found page. Twenty-four public routes are prerendered with individual metadata, canonical URLs, structured data and sitemap entries.
+Home; About; Services and seven detailed service pages (retrofit, software upgrade, service, calibration, AMC, relocation, inspection); CMM Brands and thirteen brand pages (Mitutoyo, Zeiss, Hexagon, Brown & Sharpe, DEA, Leitz, LK, Wenzel, Coord3, Tesa, Accurate, GMT, Sheffield) built from the SEO keyword list; Products and four category pages (used CMM buy & sell, Haviss modular fixtures with the M8 kit table, accessories & spares, consultation); a dynamic verified-product detail template; Training; Industries; Resources and three articles; Contact; Request a Quote; Privacy; Image Credits; Staff Administration; and a not-found page. Thirty-nine public routes are prerendered with individual metadata, canonical URLs, structured data (including FAQ schema on service pages) and sitemap entries.
 
 ## Editable content
 
-Factual defaults live in `src/data/content.ts`. Supabase-published company, service and training content overrides these defaults. The database-backed catalogue begins empty; no machine, price or availability is invented. Authorized staff manage it at `/admin`. Administration is deliberately absent from public navigation and the sitemap. Authentication and authorization are enforced by Supabase, not by hiding a link.
+Factual defaults live in `src/data/content.ts` and come from the Haviss 3D Metrology scope brochure, the Haviss CMM fixture brochure and the keyword brief. Supabase-published company, service and training content overrides these defaults. The database-backed catalogue begins empty; no machine, price or availability is invented. Authorized staff manage it at `/admin`. Administration is deliberately absent from public navigation and the sitemap. Authentication and authorization are enforced by Supabase, not by hiding a link.
 
 The public frontend uses only a Supabase URL, anonymous/publishable key and Turnstile site key. The service-role and email secrets belong only to the Edge function. All `.env` files containing real configuration are ignored by Git.
 

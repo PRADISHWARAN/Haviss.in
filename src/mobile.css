@@ -8,7 +8,7 @@
   .main-nav { top: 64px; max-height: calc(100dvh - 64px); overscroll-behavior: contain; padding: 10px 20px 28px; }
   .main-nav > a, .nav-group-label > a { min-height: 52px; display: flex; align-items: center; font-size: 15px; }
   .main-nav > a, .nav-group { border-bottom: 1px solid #e8edf4; }
-  .main-nav > a.active, .nav-group-label > a.active { color: #1464f4; }
+  .main-nav > a.active, .nav-group-label > a.active { color: #d4401f; }
   .nav-toggle { min-width: 48px; min-height: 48px; justify-content: center; align-items: center; }
   .nav-dropdown > a { min-height: 48px; font-size: 14px; }
   .hero h1 { font-size: clamp(38px, 11.5vw, 54px); letter-spacing: -.035em; }

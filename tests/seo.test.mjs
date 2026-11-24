@@ -11,16 +11,16 @@ test('staff and unknown pages are excluded from indexing and sitemap',()=>{
  assert.equal(publicRoutes.includes('/admin'),false);
  assert.equal(getSeo('/nonexistent').noindex,true);
 });
-test('organization schema omits contact email until explicitly configured',()=>{
+test('organization schema uses the Haviss contact email, not the old address',()=>{
  const organization=getSeo('/').jsonLd['@graph'].find(item=>Array.isArray(item['@type'])&&item['@type'].includes('Organization'));
- assert.equal(Object.hasOwn(organization,'email'),false);
+ assert.equal(organization.email,'haviss14@gmail.com');
  assert.doesNotMatch(getSeo('/contact').description,/sathish@haviss\.com/i);
 });
 test('default and configured canonical origins follow the deployed site',()=>{
  assert.equal(getSeo('/').canonical,'https://haviss-metrology.woodsydog32768.chatgpt.site/');
  const seo=getSeo('/about','https://www.haviss.com/');
  assert.equal(seo.canonical,'https://www.haviss.com/about');
- assert.equal(seo.image,'https://www.haviss.com/images/cmm-hero.webp');
+ assert.equal(seo.image,'https://www.haviss.com/images/haviss/og-image.jpg');
  assert.equal(getSeo('/about','not a url').canonical,'https://haviss-metrology.woodsydog32768.chatgpt.site/about');
 });
 test('only a matching published product receives its metadata',()=>{
@@ -39,4 +39,12 @@ test('static-host product query has useful metadata but stays noindex and canoni
  assert.match(seo.title,/Example CMM/);
  assert.equal(getSeo('/products',undefined,undefined,'missing').noindex,true);
  assert.equal(getSeo('/products').noindex,false);
+});
+test('local business data names Chennai and both addresses',()=>{
+ const org=getSeo('/').jsonLd['@graph'].find(item=>Array.isArray(item['@type'])&&item['@type'].includes('Organization'));
+ assert.equal(org.address.addressLocality,'Chennai');
+ assert.equal(org.department.address.postalCode,'600050');
+ assert.ok(org.logo.url.endsWith('/images/haviss/haviss-logo.png'));
+ assert.ok(publicRoutes.includes('/cmm-services-chennai'));
+ assert.match(getSeo('/cmm-services-chennai').title,/Chennai/);
 });

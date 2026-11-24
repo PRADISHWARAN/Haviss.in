@@ -13,7 +13,7 @@ type SiteContent = {
 };
 const defaults: SiteContent = {
   company: defaultCompany, services: defaultServices, trainingTopics: defaultTrainingTopics,
-  trainingDescription: 'Build a practical understanding of coordinate measurement, from machine setup and probe qualification to part alignment, drawing interpretation and useful inspection reports. Haviss offers CMM training for companies and individuals, with topics discussed against the participant’s experience and learning requirements.',
+  trainingDescription: 'Machined parts are becoming increasingly complex, with more measurement features and tighter tolerances. Higher productivity with high standards of precision demands high inspection throughput. CMMs have replaced traditional inspection with gauges and fixtures, drastically reducing inspection time and manpower — the most dramatic advantage of the CMM is its efficiency compared with surface-plate and hand-tool techniques. Haviss provides complete training for CMM users in the topics below.',
   products: defaultProducts, loading: backendConfigured, error: null,
 };
 const SiteContentContext = createContext<SiteContent>(defaults);
